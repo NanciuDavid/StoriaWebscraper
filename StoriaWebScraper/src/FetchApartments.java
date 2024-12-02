@@ -17,7 +17,7 @@ public class FetchApartments {
         try {
             // Wait until the organic listings are present
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-            list = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(".css-1i43dhb > div:nth-child(3) > ul:nth-child(2) li"))); // Adjusted to target the second list
+            list = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(".css-1i43dhb > div:nth-child(3) > ul:nth-child(2) li")));
             return list;
 
         } catch (Exception e) {

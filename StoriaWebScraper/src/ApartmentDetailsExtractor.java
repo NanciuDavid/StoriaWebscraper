@@ -11,7 +11,7 @@ public class ApartmentDetailsExtractor {
     
     public static HashMap<String, String> extractApartmentDetails(WebDriver driver) {
         HashMap<String, String> details = new HashMap<>();
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20)); // Increased wait time
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
 
         details.put("url", driver.getCurrentUrl());
@@ -81,7 +81,7 @@ public class ApartmentDetailsExtractor {
                     String value = specElement.findElement(By.xpath(".//p[2]")).getText().trim();
 
                     if(value.equals("fără informații")) {
-                        details.put(key, null); 
+                        details.put(key, "fara informatii");
                         continue;
                     }
 

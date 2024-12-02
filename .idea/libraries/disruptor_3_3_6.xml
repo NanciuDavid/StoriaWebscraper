@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="disruptor-3.3.6">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/../Downloads/OpenCSV-0.11/release/disruptor-3.3.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/../Downloads/OpenCSV-0.11/release/opencsv.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

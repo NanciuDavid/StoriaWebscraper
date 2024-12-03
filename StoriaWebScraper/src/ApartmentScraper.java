@@ -21,8 +21,8 @@ public class ApartmentScraper extends Thread {
 
     private static final String BASE_URL = "https://www.storia.ro/ro/rezultate/vanzare/apartament/toata-romania?viewType=listing&page=";
     private static final List<HashMap<String, String>> processedApartments = new ArrayList<>();
-    private static final int noPages = 1;
-    private static final int noThreads = 1;
+    private static final int noPages = 2200;
+    private static final int noThreads = 5;
     private final int startPage;
     private final int endPage;
     private static FileWriter file;

@@ -12,6 +12,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class AccesApartment {
     public static boolean clickWithRetry(WebDriver driver, By locator) {
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        //trying to access the apartment
         for (int attempt = 0; attempt < 3; attempt++) {
             try {
                 WebElement element = wait.until(ExpectedConditions.presenceOfElementLocated(locator));

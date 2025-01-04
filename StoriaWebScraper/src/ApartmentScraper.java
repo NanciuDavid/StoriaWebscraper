@@ -1,21 +1,15 @@
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.security.KeyStore;
 import java.time.Duration;
 import java.util.*;
 
-import com.opencsv.CSVWriter;
 import de.siegmar.fastcsv.writer.CsvWriter;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
-import static org.apache.commons.io.function.IOConsumer.forEach;
 
 public class ApartmentScraper extends Thread {
 
@@ -98,6 +92,7 @@ public class ApartmentScraper extends Thread {
                 }
 
                 for (int index = 0; index < apartments.size(); index++) {
+                    @SuppressWarnings("unused")
                     WebElement apartment = apartments.get(index);
                     boolean clicked = AccesApartment.clickWithRetry(driver,
                             By.cssSelector(".css-1i43dhb > div:nth-child(3) > ul:nth-child(2) li:nth-child(" + (index + 1) + ")"));

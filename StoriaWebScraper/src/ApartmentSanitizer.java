@@ -54,9 +54,9 @@ public class ApartmentSanitizer {
         Path outputFilePath = Paths.get("sanitized_apartments.csv");
 
         try (IndexedCsvReader<CsvRecord> csvReader = IndexedCsvReader.builder()
-                .pageSize(100) // Efficiently process 100 rows at a time
+                .pageSize(100) // process 100 rows at a time
                 .ofCsvRecord(inputFilePath);
-             CsvWriter csvWriter = CsvWriter.builder().build(outputFilePath)) {
+            CsvWriter csvWriter = CsvWriter.builder().build(outputFilePath)) {
 
             CsvIndex index = csvReader.getIndex();
             System.out.printf("Indexed %,d records.%n", index.getRecordCount());

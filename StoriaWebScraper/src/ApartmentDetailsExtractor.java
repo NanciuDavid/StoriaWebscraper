@@ -14,14 +14,18 @@ import com.google.maps.GeoApiContext;
 import com.google.maps.GeocodingApi;
 import com.google.maps.model.GeocodingResult;
 import com.google.maps.model.LatLng;
+import io.github.cdimascio.dotenv.Dotenv;
+
 public class ApartmentDetailsExtractor {
 
     public static HashMap<String, String> extractApartmentDetails(WebDriver driver) {
         HashMap<String, String> details = new HashMap<>();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
         WebDriverWait waitForSurvey = new WebDriverWait(driver, Duration.ofSeconds(2));
+        Dotenv dotenv = Dotenv.configure().load();
+        String apiKey = dotenv.get("GOOGLE_API");
         GeoApiContext geoContext = new GeoApiContext.Builder()
-        .apiKey("AIzaSyAbR7SumRkEyXPwxQ-GGZFfsiIV4whPWPs")
+        .apiKey(apiKey)
         .build();
     
         // Close survey popup if present

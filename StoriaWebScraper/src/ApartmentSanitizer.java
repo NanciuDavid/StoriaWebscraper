@@ -62,7 +62,7 @@ public class ApartmentSanitizer {
             System.out.printf("Indexed %,d records.%n", index.getRecordCount());
 
             // Write sanitized headers to the output file
-            csvWriter.writeRecord("Description", "Address", "Seller type", "Property type",
+            csvWriter.writeRecord("Description", "Address","Longitude", "Latitude", "Seller type", "Property type",
                     "Surface", "Rooms", "Additional information", "Price",
                     "Status", "Heating type", "Floor");
 

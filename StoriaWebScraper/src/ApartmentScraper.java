@@ -2,81 +2,71 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
-
 import de.siegmar.fastcsv.writer.CsvWriter;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+/**
+ * ApartmentScraper is a multi-threaded web scraper for extracting apartment listings from Storia.ro.
+ * The extracted data is saved into a CSV file.
+ */
 public class ApartmentScraper extends Thread {
 
     private static final String BASE_URL = "https://www.storia.ro/ro/rezultate/vanzare/apartament/toata-romania?viewType=listing&page=";
     private static final List<HashMap<String, String>> processedApartments = new ArrayList<>();
-    private static final int noPages = 2200;
-    private static final int noThreads = 1;
+    private static final int TOTAL_PAGES = 2200;
+    private static final int THREAD_COUNT = 1;
     private final int startPage;
     private final int endPage;
     private static FileWriter file;
+
     static {
         try {
             file = new FileWriter("apartments.csv");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error initializing file writer", e);
         }
     }
 
     private static final CsvWriter csv = CsvWriter.builder().build(file);
 
-    public ApartmentScraper(int startPage, int endPage) throws IOException, InterruptedException {
+    public ApartmentScraper(int startPage, int endPage) {
         this.startPage = startPage;
         this.endPage = endPage;
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
         List<ApartmentScraper> threads = new ArrayList<>();
-        int pagesPerThread = noPages / noThreads;
+        int pagesPerThread = TOTAL_PAGES / THREAD_COUNT;
 
-        // Create a CSV file that is initially populated with the headers for each column
-
+        // Define and write CSV headers
         String[] headers = {
-            "Header", 
-            "Price", 
-            "Price Per Square Meter", 
-            "Surface", 
-            "Rooms", 
-            "Address", 
-            "Latitude",
-            "Longitude",
-            "Heating Type", 
-            "Floor", 
-            "Condition", 
-            "Property Type", 
-            "Additional Information", 
-            "Year of Construction", 
-            "URL", 
-            "Extraction Date"
+            "Header", "Price", "Price Per Square Meter", "Surface", "Rooms",
+            "Address", "Latitude", "Longitude", "URL", "Extraction Date",
+            "Etaj", "Chirie", "Informații suplimentare", "Tip vânzător",
+            "Liber de la", "Tip proprietate", "Forma de proprietate",
+            "Stare", "Încălzire"
         };
-
         csv.writeRecord(headers);
 
-        for (int i = 0; i < noThreads; i++) {
+        // Start scraper threads
+        for (int i = 0; i < THREAD_COUNT; i++) {
             int startPage = i * pagesPerThread + 1;
-            int endPage = (i == noThreads - 1) ? noPages : (startPage + pagesPerThread - 1);
-
+            int endPage = (i == THREAD_COUNT - 1) ? TOTAL_PAGES : (startPage + pagesPerThread - 1);
             ApartmentScraper thread = new ApartmentScraper(startPage, endPage);
             threads.add(thread);
             thread.start();
         }
 
+        // Wait for all threads to complete
         for (ApartmentScraper thread : threads) {
             thread.join();
         }
-
-        System.out.println("Processed Apartments: " + processedApartments.size());
     }
 
     @Override
@@ -84,94 +74,95 @@ public class ApartmentScraper extends Thread {
         try {
             getDataScraped(startPage, endPage);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
         }
     }
 
+    /**
+     * Adds extracted apartment details to the processed list.
+     * @param apartmentDetails HashMap containing apartment information
+     */
+    
     public static synchronized void addProcessedApartment(HashMap<String, String> apartmentDetails) {
         processedApartments.add(apartmentDetails);
     }
 
+    /**
+     * Scrapes apartment data from the website.
+     * @param startPage Starting page number
+     * @param endPage Ending page number
+     */
     public void getDataScraped(int startPage, int endPage) throws InterruptedException {
         WebDriver driver = new FirefoxDriver();
+        HashSet<String> visitedApartments = new HashSet<>();
+
         try {
-            driver.get(BASE_URL);
-            AcceptCookies.acceptCookies(driver);
-    
             for (int page = startPage; page <= endPage; page++) {
                 driver.get(BASE_URL + page);
-                System.out.println("Scraping page: " + page);
-    
+                AcceptCookies.acceptCookies(driver);
                 List<WebElement> apartments = FetchApartments.fetchApartments(driver);
-    
-                if (apartments.isEmpty()) {
-                    System.out.println("No apartments fetched on page " + page);
-                    continue;
-                }
-    
+                if (apartments.isEmpty()) continue;
+
                 for (int index = 0; index < apartments.size(); index++) {
-                    boolean clicked = AccesApartment.clickWithRetry(driver,
-                            By.cssSelector(".css-1i43dhb > div:nth-child(3) > ul:nth-child(2) li:nth-child(" + (index + 1) + ")"));
-    
-                    if (clicked) {
+                    try {
+                        apartments = FetchApartments.fetchApartments(driver);
+                        if (index >= apartments.size()) continue;
+
+                        WebElement apartment = apartments.get(index);
+                        String apartmentUrl = apartment.findElement(By.tagName("a")).getDomAttribute("href");
+                        if (visitedApartments.contains(apartmentUrl)) continue;
+
+                        ((JavascriptExecutor) driver).executeScript("window.scrollBy(0, 400);");
+                        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+                        wait.until(ExpectedConditions.elementToBeClickable(apartment)).click();
+
                         // Extract apartment details
                         HashMap<String, String> apartmentDetails = ApartmentDetailsExtractor.extractApartmentDetails(driver);
+                        Apartment apartmentObj = new Apartment(apartmentDetails);
+
                         addProcessedApartment(apartmentDetails);
-    
-                        // Display all apartment details
-                        System.out.println("Apartment Details:");
-                        apartmentDetails.forEach((key, value) -> System.out.println(key + ": " + value));
-                        System.out.println("---------------------------------------------------");
-    
-                        // Prepare data for CSV writing
-                        String[] values = {
-                                apartmentDetails.getOrDefault("Header", "N/A"),
-                                apartmentDetails.getOrDefault("Address", "N/A"),
-                                apartmentDetails.getOrDefault("Latitude", "N/A"),
-                                apartmentDetails.getOrDefault("Longitude", "N/A"),
-                                apartmentDetails.getOrDefault("Price", "N/A"),
-                                apartmentDetails.getOrDefault("Price Per Square Meter", "N/A"),
-                                apartmentDetails.getOrDefault("Surface", "N/A"),
-                                apartmentDetails.getOrDefault("Rooms", "N/A"),
-                                apartmentDetails.getOrDefault("Heating Type", "N/A"),
-                                apartmentDetails.getOrDefault("Floor", "N/A"),
-                                apartmentDetails.getOrDefault("Condition", "N/A"),
-                                apartmentDetails.getOrDefault("Property Type", "N/A"),
-                                apartmentDetails.getOrDefault("Additional Information", "N/A"),
-                                apartmentDetails.getOrDefault("Year of Construction", "N/A"),
-                                apartmentDetails.getOrDefault("URL", "N/A"),
-                                apartmentDetails.getOrDefault("Extraction Date", "N/A")
-                        };
-    
-                        // Write to CSV
-                        csv.writeRecord(values);
-    
-                        // Navigate back to the apartments list
+                        visitedApartments.add(apartmentUrl);
+
+                        // Write extracted data to CSV file
+                        csv.writeRecord(new String[]{
+                            apartmentDetails.getOrDefault("Header", "N/A"),
+                            apartmentDetails.getOrDefault("Price", "N/A"),
+                            apartmentDetails.getOrDefault("Price Per Square Meter", "N/A"),
+                            apartmentDetails.getOrDefault("Surface", "N/A"),
+                            apartmentDetails.getOrDefault("Rooms", "N/A"),
+                            apartmentDetails.getOrDefault("Address", "N/A"),
+                            apartmentDetails.getOrDefault("Latitude", "N/A"),
+                            apartmentDetails.getOrDefault("Longitude", "N/A"),
+                            apartmentDetails.getOrDefault("URL", "N/A"),
+                            apartmentDetails.getOrDefault("Extraction Date", "N/A"),
+                            apartmentDetails.getOrDefault("Etaj:", "N/A"),
+                            apartmentDetails.getOrDefault("Chirie:", "N/A"),
+                            apartmentDetails.getOrDefault("Informații suplimentare:", "N/A"),
+                            apartmentDetails.getOrDefault("Tip vânzător:", "N/A"),
+                            apartmentDetails.getOrDefault("Liber de la:", "N/A"),
+                            apartmentDetails.getOrDefault("Tip proprietate:", "N/A"),
+                            apartmentDetails.getOrDefault("Forma de proprietate:", "N/A"),
+                            apartmentDetails.getOrDefault("Stare:", "N/A"),
+                            apartmentDetails.getOrDefault("Încălzire:", "N/A")
+                        });
+                        
+        
+
+                        System.out.println(apartmentObj);
+
                         driver.navigate().back();
-    
-                        // Wait for the apartments list to reload
-                        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-                        wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(".css-1i43dhb > div:nth-child(2) > ul:nth-child(2) li")));
-    
-                        // Refresh the apartment list after navigating back
-                        apartments = FetchApartments.fetchApartments(driver);
-                    } else {
-                        System.out.println("Failed to click on an apartment link.");
+                        Thread.sleep(3000);
+                    } catch (Exception e) {
+                        System.err.println("[ERROR] Issue while processing apartment: " + e.getMessage());
+                        driver.navigate().back();
                     }
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error during scraping: " + e.getMessage());
+            System.err.println("[ERROR] Scraper encountered an issue: " + e.getMessage());
         } finally {
             Thread.sleep(6000);
             driver.quit();
-            System.out.println("Final Processed Apartments Count: " + processedApartments.size());
-            System.out.println("All Processed Apartments:");
-            processedApartments.forEach(apartment -> {
-                apartment.forEach((key, value) -> System.out.println(key + ": " + value));
-                System.out.println("---------------------------------------------------");
-            });
         }
     }
-    
 }

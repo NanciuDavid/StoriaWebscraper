@@ -49,6 +49,11 @@ import java.util.List;
 
 public class ApartmentSanitizer {
 
+    /**
+     * Main method to sanitize apartment data from a CSV file.
+     * Reads data, processes each record, and writes sanitized data to a new CSV file.
+     * @param args Command line arguments
+     */
     public static void main(String[] args) {
         Path inputFilePath = Paths.get("apartments.csv");
         Path outputFilePath = Paths.get("sanitized_apartments.csv");
@@ -87,6 +92,13 @@ public class ApartmentSanitizer {
             System.err.println("Error processing CSV file: " + e.getMessage());
         }
     }
+
+    /**
+     * Sanitizes a single CSV record by converting and formatting its fields.
+     * Handles missing or invalid data gracefully.
+     * @param record CsvRecord to sanitize
+     * @return String array of sanitized record fields
+     */
     private static String[] sanitizeRecord(CsvRecord record) {
         // Check if any field in the record is null or empty
         for (int i = 0; i < record.getFieldCount(); i++) {
@@ -164,6 +176,12 @@ public class ApartmentSanitizer {
         return sanitizedRecord;
     }
 
+    /**
+     * Handles the conversion of floor values to a standardized format.
+     * Converts specific floor descriptions to numerical values.
+     * @param floorValue String representation of the floor
+     * @return String numerical representation of the floor
+     */
     private static String handleFloor(String floorValue) {
         // Handle specific floor values (parter, demisol, mansardă, etc.)
         if (floorValue.equalsIgnoreCase("parter")) {

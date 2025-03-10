@@ -21,6 +21,9 @@ public class Apartment {
     private String formOfProperty;
     private String status;
     private String heatingType;
+    public boolean hasSchool = false;
+
+    public Apartment(){};
 
     public Apartment(HashMap<String, String> apartmentDetails) {
         this.header = apartmentDetails.getOrDefault("Header", "N/A");
@@ -42,6 +45,26 @@ public class Apartment {
         this.formOfProperty = apartmentDetails.getOrDefault("Forma de proprietate:", "N/A");
         this.status = apartmentDetails.getOrDefault("Stare:", "N/A");
         this.heatingType = apartmentDetails.getOrDefault("Încălzire:", "N/A");
+    }   
+
+    public void setLatitude(float latitude) {
+        if(latitude >= -90 && latitude <= 90) {
+            this.latitude = latitude;
+        }
+    }
+
+    public void setLongitude(float longitude) {
+        if(longitude >= -180 && longitude <= 180) {
+            this.longitude = longitude;
+        }
+    }
+
+    public float getLatitude() {
+        return this.latitude;
+    }
+
+    public float getLongitude() {
+        return this.longitude;
     }
 
     private float parseFloatOrDefault(String value, float defaultValue) {

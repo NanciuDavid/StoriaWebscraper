@@ -7,6 +7,7 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -92,10 +93,10 @@ public class ApartmentScraper extends Thread {
      * @param startPage Starting page number
      * @param endPage Ending page number
      */
-    public void getDataScraped(int startPage, int endPage) throws InterruptedException {
-        WebDriver driver = new FirefoxDriver();
-        HashSet<String> visitedApartments = new HashSet<>();
 
+    public void getDataScraped(int startPage, int endPage) throws InterruptedException {
+        WebDriver driver = new ChromeDriver();
+        HashSet<String> visitedApartments = new HashSet<>();
         try {
             for (int page = startPage; page <= endPage; page++) {
                 driver.get(BASE_URL + page);
@@ -112,7 +113,7 @@ public class ApartmentScraper extends Thread {
                         String apartmentUrl = apartment.findElement(By.tagName("a")).getDomAttribute("href");
                         if (visitedApartments.contains(apartmentUrl)) continue;
 
-                        ((JavascriptExecutor) driver).executeScript("window.scrollBy(0, 400);");
+                        ((JavascriptExecutor) driver).executeScript("window.scrollBy(0, document.body.scrollHeight);");
                         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
                         wait.until(ExpectedConditions.elementToBeClickable(apartment)).click();
 

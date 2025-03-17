@@ -107,7 +107,7 @@ public class ApartmentDetailsExtractor {
     private static void extractHeader(WebDriver driver, WebDriverWait wait, HashMap<String, String> details) {
         try {
             WebElement headerElement = wait.until(
-                ExpectedConditions.presenceOfElementLocated(By.xpath("//h1[@class='css-4utb9r e1levl7i1']"))
+                ExpectedConditions.presenceOfElementLocated(By.cssSelector(".css-4utb9r.ednseph1"))
             );
             details.put("Header", headerElement.getText().trim());
            // System.out.println("[INFO] Extracted Header: " + details.get("Header"));

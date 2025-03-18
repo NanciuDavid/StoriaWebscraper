@@ -5,6 +5,7 @@ import java.util.*;
 import de.siegmar.fastcsv.writer.CsvWriter;
 import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.support.ui.*;
 
 public class ApartmentScraper extends Thread {
@@ -96,6 +97,13 @@ public class ApartmentScraper extends Thread {
     }
 
     public void getDataScraped(int startPage, int endPage) throws InterruptedException, IOException {
+        System.setProperty("webdriver.chrome.driver", "/usr/local/bin/chromedriver");
+
+        ChromeOptions options = new ChromeOptions();
+        options.addArguments("--headless"); // Run Chrome in headless mode
+        options.addArguments("--no-sandbox"); // Required for running in VM
+        options.addArguments("--disable-dev-shm-usage");
+
         WebDriver driver = new ChromeDriver();
         HashSet<String> visitedApartments = new HashSet<>();
         try {
